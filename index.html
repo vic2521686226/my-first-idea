@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Do It or Not</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #29413e;
+        --muted: #6f7e7b;
+        --surface: rgba(255, 255, 255, 0.45);
+        --line: rgba(41, 65, 62, 0.14);
+        --wash-one: #dfe7e2;
+        --wash-two: #dce7e8;
+        --page: #f3f1e9;
+        --button: #d5ddd8;
+        --glow: rgba(77, 128, 120, .18);
+        --button-border: rgba(77, 128, 120, .22);
+        --dialog: #f8f7f1;
+        --yes: #4d8078;
+        --no: #688495;
+      }
+
+      :root[data-mood="red"] { --wash-one: #eedbd7; --wash-two: #e7e4d9; --page: #f7f1eb; --button: #dfbab4; --glow: rgba(169, 92, 85, .2); --button-border: rgba(169, 92, 85, .3); --yes: #a45e58; --no: #9b7174; --dialog: #fcf7f2; }
+      :root[data-mood="orange"] { --wash-one: #f0dfc9; --wash-two: #e7e4d9; --page: #f8f2e9; --button: #e5c49f; --glow: rgba(175, 119, 67, .2); --button-border: rgba(175, 119, 67, .3); --yes: #a86f41; --no: #9a7a62; --dialog: #fcf8f1; }
+      :root[data-mood="yellow"] { --wash-one: #eee7c7; --wash-two: #e1e6d8; --page: #f7f4e9; --button: #e2d49a; --glow: rgba(156, 133, 59, .2); --button-border: rgba(156, 133, 59, .3); --yes: #87753b; --no: #73806a; --dialog: #fbf9ef; }
+      :root[data-mood="green"] { --wash-one: #d8e7d8; --wash-two: #dce9e4; --page: #f0f4ec; --button: #b9d4bb; --glow: rgba(84, 130, 91, .2); --button-border: rgba(84, 130, 91, .3); --yes: #4e7c58; --no: #668273; --dialog: #f6f9f2; }
+      :root[data-mood="blue"] { --wash-one: #d9e6ef; --wash-two: #dce7e8; --page: #eef4f5; --button: #b9d1df; --glow: rgba(77, 126, 154, .2); --button-border: rgba(77, 126, 154, .3); --yes: #4e7893; --no: #657f8e; --dialog: #f4f8fa; }
+      :root[data-mood="purple"] { --wash-one: #e4ddec; --wash-two: #e5e4e9; --page: #f4f1f5; --button: #cbbddd; --glow: rgba(116, 91, 149, .2); --button-border: rgba(116, 91, 149, .3); --yes: #735c91; --no: #7d728b; --dialog: #f9f6fa; }
+      :root[data-mood="white"] { --wash-one: #f8f5eb; --wash-two: #ebece6; --page: #fbfaf6; --button: #e4e3d9; --glow: rgba(105, 115, 108, .16); --button-border: rgba(105, 115, 108, .24); --yes: #65736d; --no: #788187; --dialog: #fffdf8; }
+      :root[data-mood="black"] { --wash-one: #d9dfdd; --wash-two: #dce2e5; --page: #edf0ee; --button: #aebbb7; --glow: rgba(62, 80, 78, .2); --button-border: rgba(62, 80, 78, .3); --yes: #455c58; --no: #536d7a; --dialog: #f5f7f6; }
+
+      * { box-sizing: border-box; }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 16% 12%, var(--wash-one) 0, transparent 34rem),
+          radial-gradient(circle at 84% 82%, var(--wash-two) 0, transparent 32rem),
+          var(--page);
+      }
+
+      main {
+        display: grid;
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
+        padding: clamp(1.5rem, 4vw, 4rem);
+      }
+
+      .decision-space {
+        display: grid;
+        place-items: center;
+        text-align: center;
+      }
+
+      .panel { width: min(100%, 45rem); }
+      .intro { max-width: 38rem; margin: 0 auto; color: var(--muted); font-size: clamp(1rem, 1.5vw, 1.15rem); line-height: 1.6; }
+
+      .nickname {
+        width: min(100%, 15rem);
+        margin: 1.35rem auto 0;
+        padding: .45rem .15rem;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        border-radius: 0;
+        color: var(--ink);
+        background: transparent;
+        font: inherit;
+        font-size: 1rem;
+        text-align: center;
+      }
+
+      .nickname::placeholder { color: var(--muted); opacity: 1; }
+      .nickname:focus { outline: 0; border-bottom-color: var(--ink); }
+
+      .mood-picker { display: flex; justify-content: center; gap: clamp(.35rem, 1.5vw, .9rem); margin: 2rem 0 .25rem; }
+      .mood-button { width: clamp(1.55rem, 6vw, 3.1rem); aspect-ratio: 1; border: 1px solid rgba(41, 65, 62, .15); border-radius: 50%; background: var(--swatch); cursor: pointer; transition: transform 160ms ease, box-shadow 160ms ease; }
+      .mood-button:hover { transform: translateY(-.18rem); }
+      .mood-button[aria-pressed="true"] { box-shadow: 0 0 0 .25rem var(--page), 0 0 0 .38rem var(--ink); }
+      .mood-button:focus-visible { outline: 2px solid var(--ink); outline-offset: .25rem; }
+
+      .decision-button {
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        width: clamp(12rem, 35vw, 17rem);
+        aspect-ratio: 1;
+        margin: 2.5rem 0 1.5rem;
+        border: 0;
+        border-radius: 50%;
+        color: #29413e;
+        background: var(--button);
+        box-shadow: none;
+        cursor: pointer;
+        font: inherit;
+        transition: transform 160ms ease, box-shadow 160ms ease;
+        transform-origin: center;
+        transform-style: preserve-3d;
+        will-change: transform, filter;
+      }
+
+      .decision-button:hover { transform: translateY(-.35rem) rotate(-2deg); }
+      .decision-button:active { transform: scale(.96); }
+      .decision-button:focus-visible { outline: 3px solid white; outline-offset: .35rem; }
+      .decision-button:disabled { cursor: not-allowed; opacity: .48; box-shadow: none; }
+      .decision-button:disabled:hover { transform: none; }
+      .decision-button.is-tossed { animation: coin-depth 1.35s cubic-bezier(.32, .01, .48, 1) both; }
+      .decision-button.is-flipped { transform: perspective(54rem) rotateY(180deg); }
+
+      .coin-face {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 900;
+        letter-spacing: .08em;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        transition: opacity 180ms ease;
+      }
+
+      .coin-back { transform: rotateY(180deg) scaleX(-1); }
+      .decision-button.has-answer .coin-face { opacity: 0; }
+
+      .outcome-mark {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        font-size: clamp(3rem, 8vw, 5.5rem);
+        font-weight: 500;
+        pointer-events: none;
+        transform: scaleX(-1);
+        transition: opacity 180ms ease;
+      }
+
+      .outcome-mark.yes { color: var(--yes); }
+      .outcome-mark.no { color: var(--no); }
+      .decision-button.has-answer .outcome-mark { opacity: 1; }
+
+      @keyframes coin-depth {
+        0% { transform: perspective(54rem) scale(1) rotateY(0); filter: brightness(1); }
+        30% { transform: perspective(54rem) scale(1.3) rotateY(52deg); filter: brightness(1.12); }
+        48% { transform: perspective(54rem) scale(1.18) rotateY(90deg); filter: brightness(.9); }
+        62% { transform: perspective(54rem) scale(1.08) rotateY(180deg); filter: brightness(1.08); }
+        80% { transform: perspective(54rem) scale(.96) rotateY(166deg); filter: brightness(.96); }
+        100% { transform: perspective(54rem) scale(1) rotateY(180deg); filter: brightness(1); }
+      }
+
+      .result {
+        min-height: 4.4rem;
+        margin: 0;
+        color: var(--ink);
+        font-size: clamp(2.2rem, 6vw, 4.6rem);
+        font-weight: 900;
+        letter-spacing: -.04em;
+      }
+
+      .result.yes { color: var(--yes); }
+      .result.no { color: var(--no); }
+
+      .ritual {
+        min-height: 1.75rem;
+        margin: .6rem 0 0;
+        color: var(--muted);
+        font-size: 1rem;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+
+      .hint-button {
+        position: fixed;
+        right: clamp(1.25rem, 4vw, 3rem);
+        bottom: clamp(1.25rem, 4vw, 3rem);
+        padding: .4rem;
+        border: 0;
+        color: var(--muted);
+        background: transparent;
+        cursor: pointer;
+        font: inherit;
+        font-size: .8rem;
+        text-decoration: underline;
+        text-underline-offset: .25em;
+      }
+
+      .hint-button:hover { color: var(--ink); }
+      .hint-button:focus-visible { outline: 2px solid var(--ink); outline-offset: .25rem; }
+
+      .try-again-button {
+        position: fixed;
+        top: clamp(1.25rem, 4vw, 3rem);
+        left: clamp(1.25rem, 4vw, 3rem);
+        padding: .4rem;
+        border: 0;
+        color: var(--muted);
+        background: transparent;
+        cursor: pointer;
+        font: inherit;
+        font-size: .8rem;
+        text-decoration: underline;
+        text-underline-offset: .25em;
+      }
+
+      .try-again-button:hover { color: var(--ink); }
+      .try-again-button:focus-visible { outline: 2px solid var(--ink); outline-offset: .25rem; }
+
+      dialog {
+        width: min(90vw, 32rem);
+        padding: clamp(1.5rem, 4vw, 2.5rem);
+        border: 1px solid rgba(41, 65, 62, .16);
+        border-radius: 1rem;
+        color: var(--ink);
+        background: var(--dialog);
+        box-shadow: 0 1.5rem 4rem rgba(41, 65, 62, .18);
+      }
+
+      dialog::backdrop { background: rgba(41, 65, 62, .22); }
+      dialog p { margin: 0; font-size: clamp(1.2rem, 2.5vw, 1.6rem); line-height: 1.45; }
+      .dialog-close { float: right; margin: -.7rem -.7rem 1rem 1rem; border: 0; color: var(--muted); background: transparent; cursor: pointer; font: inherit; font-size: 1.25rem; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .decision-button { transition: none; }
+        .decision-button.is-tossed { animation-duration: .01ms; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="decision-space" aria-label="Random decision maker">
+        <div class="panel">
+          <p class="intro">Are you hesitating? Take a deep breath, choose the color that matches your mood, then press the button for your answer.</p>
+          <label class="sr-only" for="nickname">Your nickname</label>
+          <input class="nickname" id="nickname" name="nickname" type="text" maxlength="24" autocomplete="nickname" placeholder="your nickname (optional)" />
+          <div class="mood-picker" role="group" aria-label="Choose the color that matches your mood">
+            <button class="mood-button" type="button" data-mood="white" aria-label="White mood" aria-pressed="false" style="--swatch: #fbfaf4"></button>
+            <button class="mood-button" type="button" data-mood="red" aria-label="Red mood" aria-pressed="false" style="--swatch: #d8a6a0"></button>
+            <button class="mood-button" type="button" data-mood="orange" aria-label="Orange mood" aria-pressed="false" style="--swatch: #dfb88f"></button>
+            <button class="mood-button" type="button" data-mood="yellow" aria-label="Yellow mood" aria-pressed="false" style="--swatch: #dfd08a"></button>
+            <button class="mood-button" type="button" data-mood="green" aria-label="Green mood" aria-pressed="false" style="--swatch: #a9c7ac"></button>
+            <button class="mood-button" type="button" data-mood="blue" aria-label="Blue mood" aria-pressed="false" style="--swatch: #a9c5d5"></button>
+            <button class="mood-button" type="button" data-mood="purple" aria-label="Purple mood" aria-pressed="false" style="--swatch: #beb1d4"></button>
+            <button class="mood-button" type="button" data-mood="black" aria-label="Black mood" aria-pressed="false" style="--swatch: #515958"></button>
+          </div>
+
+          <button class="decision-button" id="decide" type="button" aria-label="Toss the decision coin" disabled>
+            <span class="coin-face coin-front" aria-hidden="true">→</span>
+            <span class="coin-face coin-back" aria-hidden="true">→</span>
+            <span class="outcome-mark" id="outcome-mark" aria-hidden="true"></span>
+          </button>
+          <p id="result" class="result" aria-live="polite"></p>
+          <p id="ritual" class="ritual" aria-live="polite"></p>
+        </div>
+      </section>
+      <button class="try-again-button" id="try-again" type="button" hidden>try again</button>
+      <button class="hint-button" id="hint" type="button" hidden>hint</button>
+      <dialog id="hint-dialog" aria-labelledby="hint-message">
+        <button class="dialog-close" id="close-hint" type="button" aria-label="Close">×</button>
+        <p id="hint-message">How do you feel when you see “Don't do it”? If that answer unsettles you, it may be because you already want to do it. Trust that feeling—then just do it.</p>
+      </dialog>
+    </main>
+
+    <script>
+      const button = document.querySelector('#decide');
+      const coinBack = document.querySelector('.coin-back');
+      const outcomeMark = document.querySelector('#outcome-mark');
+      const moodButtons = document.querySelectorAll('.mood-button');
+      const nickname = document.querySelector('#nickname');
+      const result = document.querySelector('#result');
+      const ritual = document.querySelector('#ritual');
+      const tryAgain = document.querySelector('#try-again');
+      const hint = document.querySelector('#hint');
+      const hintDialog = document.querySelector('#hint-dialog');
+      const closeHint = document.querySelector('#close-hint');
+      let ritualTimer;
+      const ritualMessages = {
+        yes: [
+          'Take one small step.',
+          'Begin before you feel ready.',
+          'Let yourself move forward.'
+        ],
+        no: [
+          'Give yourself permission to pause.',
+          'Leave this one for another day.',
+          'Protect your energy today.'
+        ]
+      };
+      const lastRitual = { yes: '', no: '' };
+
+      moodButtons.forEach((moodButton) => {
+        moodButton.addEventListener('click', () => {
+          document.documentElement.dataset.mood = moodButton.dataset.mood;
+          moodButtons.forEach((choice) => {
+            choice.setAttribute('aria-pressed', choice === moodButton ? 'true' : 'false');
+          });
+          button.disabled = false;
+        });
+      });
+
+      function startRitual(outcome) {
+        const choices = ritualMessages[outcome];
+        const availableChoices = choices.filter((message) => message !== lastRitual[outcome]);
+        const closingMessage = availableChoices[Math.floor(Math.random() * availableChoices.length)];
+        const steps = ['3', '2', '1', closingMessage];
+        let step = 0;
+        lastRitual[outcome] = closingMessage;
+        clearInterval(ritualTimer);
+        ritual.textContent = steps[step];
+        ritualTimer = setInterval(() => {
+          step += 1;
+          ritual.textContent = steps[step];
+          if (step === steps.length - 1) clearInterval(ritualTimer);
+        }, 1000);
+      }
+
+      button.addEventListener('click', () => {
+        const shouldDoIt = Math.random() < 0.5;
+        const decision = shouldDoIt ? 'Just do it.' : "Don't do it.";
+        const name = nickname.value.trim();
+        const answer = name ? `${name}, ${decision}` : decision;
+        const revealDelay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1350;
+        coinBack.textContent = shouldDoIt ? '→' : '←';
+        button.disabled = true;
+        button.classList.remove('has-answer');
+        button.classList.remove('is-flipped');
+        outcomeMark.textContent = '';
+        outcomeMark.className = 'outcome-mark';
+        button.classList.add('is-tossed');
+        result.textContent = '';
+        ritual.textContent = '';
+        hint.hidden = true;
+        tryAgain.hidden = true;
+        if (hintDialog.open) hintDialog.close();
+
+        setTimeout(() => {
+          result.textContent = answer;
+          result.className = `result ${shouldDoIt ? 'yes' : 'no'}`;
+          tryAgain.hidden = false;
+          hint.hidden = shouldDoIt;
+          button.classList.add('is-flipped');
+          outcomeMark.textContent = shouldDoIt ? '✓' : '×';
+          outcomeMark.className = `outcome-mark ${shouldDoIt ? 'yes' : 'no'}`;
+          button.classList.add('has-answer');
+          button.classList.remove('is-tossed');
+          button.disabled = false;
+          startRitual(shouldDoIt ? 'yes' : 'no');
+        }, revealDelay);
+      });
+
+      tryAgain.addEventListener('click', () => {
+        result.textContent = '';
+        result.className = 'result';
+        ritual.textContent = '';
+        button.classList.remove('has-answer');
+        outcomeMark.textContent = '';
+        outcomeMark.className = 'outcome-mark';
+        clearInterval(ritualTimer);
+        tryAgain.hidden = true;
+        hint.hidden = true;
+        if (hintDialog.open) hintDialog.close();
+      });
+
+      hint.addEventListener('click', () => hintDialog.showModal());
+      closeHint.addEventListener('click', () => hintDialog.close());
+    </script>
+  </body>
+</html>
