@@ -5,6 +5,7 @@ When someone chooses a color that matches their mood and tosses the decision coi
 ## Open it
 
 No installation or build step is needed. Open [index.html](index.html) in any modern web browser. On macOS, you can also double-click the file in Finder.
+Public link for access: https://vic2521686226.github.io/my-first-idea/
 
 ## Design process
 
